@@ -71,3 +71,82 @@ function drawMap() {
   }
 }
 
+//카메라 시스템
+let camera = { x: 0, y: 0 };
+
+function updateCamera() {
+  camera.x = player.x - canvas.width / 2 + player.width / 2;
+  camera.y = player.y - canvas.height / 2 + player.height / 2;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(-camera.x, -camera.y);
+
+  drawMap();
+
+  ctx.fillStyle = "black";
+  ctx.fillRect(player.x, player.y, player.width, player.height);
+
+  ctx.restore();
+}
+
+//생물 기본ai
+let creatures = [
+  { x: 300, y: 400, vx: 1, width: 32, height: 32 }
+];
+
+function updateCreatures() {
+  for (let c of creatures) {
+    c.x += c.vx;
+    // 좌우 왔다갔다
+    if (c.x < 200 || c.x > 400) c.vx *= -1;
+  }
+}
+
+function drawCreatures() {
+  for (let c of creatures) {
+    ctx.fillStyle = "green";
+    ctx.fillRect(c.x, c.y, c.width, c.height);
+  }
+}
+
+//충돌판정
+function checkTileCollision(px, py) {
+  let tileX = Math.floor(px / tileSize);
+  let tileY = Math.floor(py / tileSize);
+  if (tileY >= 0 && tileY < map.length && tileX >= 0 && tileX < map[0].length) {
+    return map[tileY][tileX] === 1;
+  }
+  return false;
+}
+
+//날씨시간
+let time = 0;
+
+function updateTime() {
+  time += 1;
+}
+
+function drawWeather() {
+  if (time % 600 < 300) {
+    ctx.fillStyle = "rgba(0,0,0,0.1)";
+    ctx.fillRect(camera.x, camera.y, canvas.width, canvas.height);
+  } else {
+    ctx.fillStyle = "rgba(255,255,255,0.05)";
+    ctx.fillRect(camera.x, camera.y, canvas.width, canvas.height);
+  }
+}
+
+//저장 불러오기
+function saveGame() {
+  localStorage.setItem("playerX", player.x);
+  localStorage.setItem("playerY", player.y);
+}
+
+function loadGame() {
+  player.x = parseFloat(localStorage.getItem("playerX")) || 100;
+  player.y = parseFloat(localStorage.getItem("playerY")) || 100;
+}
+
