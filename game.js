@@ -51,3 +51,23 @@ function gameLoop() {
 
 gameLoop();
 
+//맵이랑 타일 기반 구조
+let map = [
+  [0, 0, 0, 0, 0],
+  [0, 1, 1, 0, 0],
+  [0, 0, 0, 0, 0]
+];
+
+const tileSize = 64;
+
+function drawMap() {
+  for (let y = 0; y < map.length; y++) {
+    for (let x = 0; x < map[y].length; x++) {
+      if (map[y][x] === 1) {
+        ctx.fillStyle = "brown";
+        ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+      }
+    }
+  }
+}
+
