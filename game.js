@@ -150,3 +150,22 @@ function loadGame() {
   player.y = parseFloat(localStorage.getItem("playerY")) || 100;
 }
 
+//캐릭터 이미지 불러오기
+const playerImage = new Image();
+playerImage.src = "assets/player.png";
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(-camera.x, -camera.y);
+
+  drawMap();
+  drawCreatures();
+
+  // 플레이어
+  ctx.drawImage(playerImage, player.x, player.y, player.width, player.height);
+
+  ctx.restore();
+}
+
+
