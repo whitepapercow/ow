@@ -1,7 +1,12 @@
-//기초코드
+// 캔버스 설정
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// 플레이어 이미지
+const playerImage = new Image();
+playerImage.src = "assets/player.png";
+
+// 플레이어 속성
 const player = {
   x: 100, y: 100,
   vx: 0, vy: 0,
@@ -9,49 +14,12 @@ const player = {
   onGround: false
 };
 
+// 키 입력
 const keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
-function update() {
-  player.vx = 0;
-  if (keys["ArrowLeft"]) player.vx = -2;
-  if (keys["ArrowRight"]) player.vx = 2;
-  if (keys[" "] && player.onGround) player.vy = -8;
-
-  player.vy += 0.5; // gravity
-  player.x += player.vx;
-  player.y += player.vy;
-
-  // 단순 바닥 충돌
-  if (player.y > 500) {
-    player.y = 500;
-    player.vy = 0;
-    player.onGround = true;
-  } else {
-    player.onGround = false;
-  }
-}
-
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "skyblue";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // 플레이어
-  ctx.fillStyle = "black";
-  ctx.fillRect(player.x, player.y, player.width, player.height);
-}
-
-function gameLoop() {
-  update();
-  draw();
-  requestAnimationFrame(gameLoop);
-}
-
-gameLoop();
-
-//맵이랑 타일 기반 구조
+// 맵 로드
 let map = [
   [0, 0, 0, 0, 0],
   [0, 1, 1, 0, 0],
@@ -71,7 +39,7 @@ function drawMap() {
   }
 }
 
-//카메라 시스템
+// 카메라
 let camera = { x: 0, y: 0 };
 
 function updateCamera() {
@@ -79,20 +47,7 @@ function updateCamera() {
   camera.y = player.y - canvas.height / 2 + player.height / 2;
 }
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.save();
-  ctx.translate(-camera.x, -camera.y);
-
-  drawMap();
-
-  ctx.fillStyle = "black";
-  ctx.fillRect(player.x, player.y, player.width, player.height);
-
-  ctx.restore();
-}
-
-//생물 기본ai
+// 생물들
 let creatures = [
   { x: 300, y: 400, vx: 1, width: 32, height: 32 }
 ];
@@ -100,7 +55,6 @@ let creatures = [
 function updateCreatures() {
   for (let c of creatures) {
     c.x += c.vx;
-    // 좌우 왔다갔다
     if (c.x < 200 || c.x > 400) c.vx *= -1;
   }
 }
@@ -112,7 +66,7 @@ function drawCreatures() {
   }
 }
 
-//충돌판정
+// 충돌 판정
 function checkTileCollision(px, py) {
   let tileX = Math.floor(px / tileSize);
   let tileY = Math.floor(py / tileSize);
@@ -122,7 +76,7 @@ function checkTileCollision(px, py) {
   return false;
 }
 
-//날씨시간
+// 날씨와 시간
 let time = 0;
 
 function updateTime() {
@@ -132,14 +86,13 @@ function updateTime() {
 function drawWeather() {
   if (time % 600 < 300) {
     ctx.fillStyle = "rgba(0,0,0,0.1)";
-    ctx.fillRect(camera.x, camera.y, canvas.width, canvas.height);
   } else {
     ctx.fillStyle = "rgba(255,255,255,0.05)";
-    ctx.fillRect(camera.x, camera.y, canvas.width, canvas.height);
   }
+  ctx.fillRect(camera.x, camera.y, canvas.width, canvas.height);
 }
 
-//저장 불러오기
+// 저장 / 불러오기
 function saveGame() {
   localStorage.setItem("playerX", player.x);
   localStorage.setItem("playerY", player.y);
@@ -150,9 +103,30 @@ function loadGame() {
   player.y = parseFloat(localStorage.getItem("playerY")) || 100;
 }
 
-//캐릭터 이미지 불러오기
-const playerImage = new Image();
-playerImage.src = "assets/player.png";
+// 게임 로직
+function update() {
+  player.vx = 0;
+  if (keys["ArrowLeft"]) player.vx = -2;
+  if (keys["ArrowRight"]) player.vx = 2;
+  if (keys[" "] && player.onGround) player.vy = -8;
+
+  player.vy += 0.5; // 중력
+  player.x += player.vx;
+  player.y += player.vy;
+
+  // 간단한 바닥 충돌
+  if (player.y > 500) {
+    player.y = 500;
+    player.vy = 0;
+    player.onGround = true;
+  } else {
+    player.onGround = false;
+  }
+
+  updateCamera();
+  updateCreatures();
+  updateTime();
+}
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -161,11 +135,18 @@ function draw() {
 
   drawMap();
   drawCreatures();
-
-  // 플레이어
   ctx.drawImage(playerImage, player.x, player.y, player.width, player.height);
+  drawWeather();
 
   ctx.restore();
 }
 
+function gameLoop() {
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
 
+// 시작
+loadGame();
+gameLoop();
